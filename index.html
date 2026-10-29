@@ -4,88 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Study.app - Mon Assistant d'Études</title>
-  <style>
-    :root {
-      --bg-dark: #0f172a;
-      --card-bg: #1e293b;
-      --primary: #6366f1;
-      --primary-hover: #4f46e5;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --border: #334155;
-      --success: #22c55e;
+  
+  <!-- Feuilles de style & PWA -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#6366f1">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
     }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-    body { background-color: var(--bg-dark); color: var(--text-main); padding: 20px; line-height: 1.5; }
-    .container { max-width: 1100px; margin: 0 auto; }
-
-    /* En-tête et Statistiques */
-    header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
-    h1 { color: #818cf8; font-size: 1.8rem; font-weight: 800; }
-    .stats-container { display: flex; gap: 10px; flex-wrap: wrap; }
-    .stat-badge { background: var(--card-bg); padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.85rem; font-weight: 600; color: #cbd5e1; }
-    .stat-badge span { color: #818cf8; font-weight: bold; }
-
-    /* Navigation */
-    nav { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
-    .nav-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-main); padding: 10px 18px; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-weight: 600; }
-    .nav-btn.active, .nav-btn:hover { background: var(--primary); border-color: var(--primary); }
-
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    /* Formulaires et Composants UI */
-    .card { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem; }
-    input, select { width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid var(--border); background: #0f172a; color: #fff; font-size: 0.95rem; }
-    input:focus, select:focus { outline: none; border-color: var(--primary); }
-    
-    .btn { background: var(--primary); color: #fff; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: background 0.2s; }
-    .btn:hover { background: var(--primary-hover); }
-    .btn-small { padding: 5px 10px; font-size: 0.8rem; }
-    .btn-danger { background: #ef4444; }
-    .btn-danger:hover { background: #dc2626; }
-    .btn-secondary { background: #475569; }
-    .btn-secondary:hover { background: #334155; }
-
-    /* Grille de Modules */
-    .grid-modules { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-    .module-card { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); padding: 20px; border-left: 6px solid var(--primary); position: relative; display: flex; flex-direction: column; justify-content: space-between; }
-    
-    .module-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    .module-title { font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-    .module-badge { font-size: 0.8rem; padding: 2px 8px; border-radius: 12px; background: rgba(255,255,255,0.1); color: #cbd5e1; }
-    
-    .module-actions { display: flex; gap: 5px; }
-
-    /* Chapitres & ÉTAPES (3 ÉTAPE OBLIGATOIRES) */
-    .chapter-container { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
-    .chapter-item { background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 8px; border: 1px solid var(--border); }
-    .chapter-header { font-weight: 600; font-size: 0.95rem; margin-bottom: 8px; color: #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
-    
-    .steps-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
-    .step-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; }
-    .step-item input { width: auto; cursor: pointer; }
-    .step-item.completed { text-decoration: line-through; color: var(--success); }
-
-    /* Pomodoro */
-    .pomodoro-container { max-width: 500px; margin: 0 auto; text-align: center; }
-    .timer-display { font-size: 5rem; font-weight: 800; font-family: monospace; margin: 20px 0; color: #818cf8; text-shadow: 0 0 20px rgba(129, 140, 248, 0.2); }
-    .timer-controls { display: flex; justify-content: center; gap: 12px; }
-
-    /* Planning & Anti-Mood */
-    .planning-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    @media (max-width: 768px) { .planning-grid { grid-template-columns: 1fr; } }
-
-    .recommendation-result { margin-top: 20px; padding: 15px; background: rgba(99, 102, 241, 0.15); border: 1px solid var(--primary); border-radius: 8px; line-height: 1.6; }
-  </style>
+  </script>
 </head>
 <body>
 
   <div class="container">
-    <!-- En-tête / Stats globales -->
+    <!-- En-tête avec statistiques globales -->
     <header>
       <h1>Study.app</h1>
       <div class="stats-container">
@@ -95,67 +28,66 @@
       </div>
     </header>
 
-    <!-- Menu Navigation -->
+    <!-- Navigation principale -->
     <nav>
       <button class="nav-btn active" onclick="switchTab('modules')">📚 Modules & Chapitres</button>
       <button class="nav-btn" onclick="switchTab('planning')">📅 Planning & Recommandateur Anti-Mood</button>
       <button class="nav-btn" onclick="switchTab('pomodoro')">⏱️ Pomodoro par Module</button>
     </nav>
 
-    <!-- ONGLET 1: MODULES & CHAPITRES -->
+    <!-- ONGLET 1 : MODULES & CHAPITRES -->
     <section id="tab-modules" class="tab-content active">
-      <div style="margin-bottom: 20px;">
+      <div class="action-bar">
         <button class="btn" onclick="toggleForm('form-add-module')">+ Créer un nouveau Module</button>
       </div>
 
       <!-- Formulaire d'ajout de Module -->
       <div id="form-add-module" class="card" style="display: none;">
-        <h3>Ajouter un Module</h3>
-        <br>
+        <h3>Nouveau Module</h3>
         <div class="form-group">
-          <label>Nom du Module</label>
+          <label for="mod-title">Nom du Module</label>
           <input type="text" id="mod-title" placeholder="ex: Anesthésie-Réanimation, Algorithmique...">
         </div>
-        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-          <div class="form-group" style="flex: 1; min-width: 120px;">
-            <label>Couleur personnalisée</label>
-            <input type="color" id="mod-color" value="#6366f1" style="height: 42px; cursor: pointer;">
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="mod-color">Couleur personnalisée</label>
+            <input type="color" id="mod-color" value="#6366f1" class="color-picker">
           </div>
-          <div class="form-group" style="flex: 1; min-width: 120px;">
-            <label>Nombre de TP</label>
+          <div class="form-group flex-1">
+            <label for="mod-tp">Nombre de TP</label>
             <input type="number" id="mod-tp" value="0" min="0">
           </div>
-          <div class="form-group" style="flex: 1; min-width: 120px;">
-            <label>Nombre de TD</label>
+          <div class="form-group flex-1">
+            <label for="mod-td">Nombre de TD</label>
             <input type="number" id="mod-td" value="0" min="0">
           </div>
         </div>
-        <button class="btn" onclick="createModule()">Enregistrer le Module</button>
-        <button class="btn btn-secondary" onclick="toggleForm('form-add-module')">Annuler</button>
+        <div class="form-actions">
+          <button class="btn" onclick="createModule()">Enregistrer le Module</button>
+          <button class="btn btn-secondary" onclick="toggleForm('form-add-module')">Annuler</button>
+        </div>
       </div>
 
-      <!-- Conteneur des cartes de modules -->
+      <!-- Liste dynamique des modules -->
       <div class="grid-modules" id="modules-list"></div>
     </section>
 
-    <!-- ONGLET 2: PLANNING & RECOMMANDATEUR ANTI-MOOD -->
+    <!-- ONGLET 2 : PLANNING & RECOMMANDATEUR ANTI-MOOD -->
     <section id="tab-planning" class="tab-content">
       <div class="planning-grid">
         
-        <!-- Moteur Anti-Mood -->
+        <!-- Recommandateur Anti-Mood -->
         <div class="card">
           <h2>🧠 Recommandateur Anti-Mood</h2>
-          <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px; margin-bottom: 15px;">
-            Ne laissez pas votre état d'esprit décider de vos études. Indiquez votre état actuel et le temps dont vous disposez.
-          </p>
+          <p class="subtitle">Indiquez votre état actuel et le temps disponible pour obtenir votre tâche idéale sans subir votre humeur.</p>
 
           <div class="form-group">
-            <label>Durée disponible (minutes)</label>
+            <label for="mood-time">Durée disponible (minutes)</label>
             <input type="number" id="mood-time" value="30" min="5" step="5">
           </div>
 
           <div class="form-group">
-            <label>État de fatigue (1 = Pleine forme, 5 = Épuisé)</label>
+            <label for="mood-fatigue">Niveau de fatigue</label>
             <select id="mood-fatigue">
               <option value="1">1 - En pleine forme</option>
               <option value="2">2 - Légère fatigue</option>
@@ -166,7 +98,7 @@
           </div>
 
           <div class="form-group">
-            <label>Humeur du moment</label>
+            <label for="mood-state">Humeur du moment</label>
             <select id="mood-state">
               <option value="motivated">Très Motivé(e)</option>
               <option value="neutral">Neutre</option>
@@ -175,7 +107,7 @@
             </select>
           </div>
 
-          <button class="btn" style="width: 100%;" onclick="generateRecommendation()">Obtenir ma tâche idéale</button>
+          <button class="btn full-width" onclick="generateRecommendation()">Obtenir la tâche adaptée</button>
 
           <div class="recommendation-result" id="recommendation-output" style="display: none;"></div>
         </div>
@@ -183,40 +115,38 @@
         <!-- Planning Universitaire -->
         <div class="card">
           <h2>📅 Planning Universitaire</h2>
-          <br>
           <div class="form-group">
-            <label>Intitulé (Cours, Examen, Révison...)</label>
+            <label for="plan-title">Intitulé (Examen, TP, Révision...)</label>
             <input type="text" id="plan-title" placeholder="ex: Examen de TP Mod 2">
           </div>
           <div class="form-group">
-            <label>Date et Heure</label>
+            <label for="plan-date">Date et Heure</label>
             <input type="datetime-local" id="plan-date">
           </div>
-          <button class="btn" onclick="addPlanningItem()">Ajouter au planning</button>
+          <button class="btn full-width" onclick="addPlanningItem()">Ajouter au planning</button>
 
-          <div style="margin-top: 20px;" id="planning-list"></div>
+          <div class="planning-list" id="planning-list"></div>
         </div>
 
       </div>
     </section>
 
-    <!-- ONGLET 3: POMODORO -->
+    <!-- ONGLET 3 : POMODORO PAR MODULE -->
     <section id="tab-pomodoro" class="tab-content">
       <div class="card pomodoro-container">
-        <h2>⏱️ Technique Pomodoro par Module</h2>
-        <br>
+        <h2>⏱️ Minuteur Pomodoro par Module</h2>
         <div class="form-group">
-          <label>Sélectionner le module à étudier</label>
+          <label for="pomo-module-select">Module à étudier</label>
           <select id="pomo-module-select"></select>
         </div>
 
-        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-          <div style="flex: 1;">
-            <label>Durée Travail (min)</label>
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="pomo-work">Travail (min)</label>
             <input type="number" id="pomo-work" value="25" min="1" onchange="resetTimer()">
           </div>
-          <div style="flex: 1;">
-            <label>Durée Pause (min)</label>
+          <div class="form-group flex-1">
+            <label for="pomo-break">Pause (min)</label>
             <input type="number" id="pomo-break" value="5" min="1">
           </div>
         </div>
@@ -233,327 +163,6 @@
 
   </div>
 
-  <script>
-    // --- GESTION DES DONNÉES ---
-    let appData = {
-      modules: JSON.parse(localStorage.getItem('study_modules')) || [],
-      planning: JSON.parse(localStorage.getItem('study_planning')) || []
-    };
-
-    function saveData() {
-      localStorage.setItem('study_modules', JSON.stringify(appData.modules));
-      localStorage.setItem('study_planning', JSON.stringify(appData.planning));
-      updateGlobalStats();
-    }
-
-    // Navigation Onglets
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-      document.getElementById(`tab-${tabId}`).classList.add('active');
-      event.target.classList.add('active');
-
-      if (tabId === 'pomodoro') updatePomodoroDropdown();
-    }
-
-    function toggleForm(formId) {
-      const form = document.getElementById(formId);
-      form.style.display = form.style.display === 'none' ? 'block' : 'none';
-    }
-
-    // --- LOGIQUE DES MODULES ---
-    function createModule() {
-      const name = document.getElementById('mod-title').value.trim();
-      const color = document.getElementById('mod-color').value;
-      const tp = parseInt(document.getElementById('mod-tp').value) || 0;
-      const td = parseInt(document.getElementById('mod-td').value) || 0;
-
-      if (!name) return alert('Veuillez spécifier le nom du module.');
-
-      const newModule = {
-        id: Date.now(),
-        name: name,
-        color: color,
-        tpCount: tp,
-        tdCount: td,
-        chapters: []
-      };
-
-      appData.modules.push(newModule);
-      saveData();
-      renderModules();
-      document.getElementById('mod-title').value = '';
-      toggleForm('form-add-module');
-    }
-
-    function deleteModule(modId) {
-      if (confirm('Voulez-vous vraiment supprimer ce module ?')) {
-        appData.modules = appData.modules.filter(m => m.id !== modId);
-        saveData();
-        renderModules();
-      }
-    }
-
-    // Gestion des Emplacements / Ordre des modules
-    function moveModule(index, direction) {
-      const newIndex = index + direction;
-      if (newIndex < 0 || newIndex >= appData.modules.length) return;
-      const temp = appData.modules[index];
-      appData.modules[index] = appData.modules[newIndex];
-      appData.modules[newIndex] = temp;
-      saveData();
-      renderModules();
-    }
-
-    // --- LOGIQUE DES CHAPITRES & ÉTAPES ---
-    function addChapter(modId) {
-      const title = prompt('Titre du chapitre :');
-      if (!title) return;
-
-      const mod = appData.modules.find(m => m.id === modId);
-      if (mod) {
-        mod.chapters.push({
-          id: Date.now(),
-          title: title,
-          // Les 3 étapes exactes spécifiées
-          steps: [
-            { id: 1, label: "1. Écouter / noter l'audio", done: false },
-            { id: 2, label: "2. Comprendre le reste", done: false },
-            { id: 3, label: "3. Faire un résumé", done: false }
-          ]
-        });
-        saveData();
-        renderModules();
-      }
-    }
-
-    function deleteChapter(modId, chapId) {
-      const mod = appData.modules.find(m => m.id === modId);
-      if (mod) {
-        mod.chapters = mod.chapters.filter(c => c.id !== chapId);
-        saveData();
-        renderModules();
-      }
-    }
-
-    function toggleStep(modId, chapId, stepId) {
-      const mod = appData.modules.find(m => m.id === modId);
-      if (mod) {
-        const chap = mod.chapters.find(c => c.id === chapId);
-        if (chap) {
-          const step = chap.steps.find(s => s.id === stepId);
-          if (step) step.done = !step.done;
-          saveData();
-          renderModules();
-        }
-      }
-    }
-
-    // Affichage des modules
-    function renderModules() {
-      const container = document.getElementById('modules-list');
-      container.innerHTML = '';
-
-      if (appData.modules.length === 0) {
-        container.innerHTML = '<p style="color: var(--text-muted);">Aucun module ajouté pour le moment.</p>';
-        return;
-      }
-
-      appData.modules.forEach((mod, index) => {
-        const card = document.createElement('div');
-        card.className = 'module-card';
-        card.style.borderLeftColor = mod.color;
-
-        let chaptersHTML = mod.chapters.map(chap => `
-          <div class="chapter-item">
-            <div class="chapter-header">
-              <span>📖 ${chap.title}</span>
-              <button class="btn btn-danger btn-small" onclick="deleteChapter(${mod.id}, ${chap.id})">✕</button>
-            </div>
-            <ul class="steps-list">
-              ${chap.steps.map(step => `
-                <li class="step-item ${step.done ? 'completed' : ''}">
-                  <input type="checkbox" ${step.done ? 'checked' : ''} onchange="toggleStep(${mod.id}, ${chap.id}, ${step.id})">
-                  <span>${step.label}</span>
-                </li>
-              `).join('')}
-            </ul>
-          </div>
-        `).join('');
-
-        card.innerHTML = `
-          <div>
-            <div class="module-header">
-              <div class="module-title" style="color: ${mod.color}">
-                ${mod.name}
-              </div>
-              <div class="module-actions">
-                <button class="btn btn-secondary btn-small" onclick="moveModule(${index}, -1)">▲</button>
-                <button class="btn btn-secondary btn-small" onclick="moveModule(${index}, 1)">▼</button>
-                <button class="btn btn-danger btn-small" onclick="deleteModule(${mod.id})">✕</button>
-              </div>
-            </div>
-            
-            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
-              🧪 TP : ${mod.tpCount} | 📝 TD : ${mod.tdCount} | 📚 Chapitres : ${mod.chapters.length}
-            </div>
-
-            <button class="btn btn-small" style="width: 100%; margin-bottom: 10px;" onclick="addChapter(${mod.id})">+ Ajouter un chapitre</button>
-            
-            <div class="chapter-container">
-              ${chaptersHTML}
-            </div>
-          </div>
-        `;
-
-        container.appendChild(card);
-      });
-    }
-
-    // --- STATISTIQUES GLOBALES ---
-    function updateGlobalStats() {
-      document.getElementById('stat-modules-count').innerText = appData.modules.length;
-
-      let totalTP = 0, totalTD = 0, totalSteps = 0, completedSteps = 0;
-
-      appData.modules.forEach(m => {
-        totalTP += m.tpCount || 0;
-        totalTD += m.tdCount || 0;
-        m.chapters.forEach(c => {
-          c.steps.forEach(s => {
-            totalSteps++;
-            if (s.done) completedSteps++;
-          });
-        });
-      });
-
-      document.getElementById('stat-tp-count').innerText = totalTP;
-      document.getElementById('stat-td-count').innerText = totalTD;
-
-      const progressPct = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
-      document.getElementById('stat-progression').innerText = `${progressPct}%`;
-    }
-
-    // --- RECOMMANDATEUR ANTI-MOOD ---
-    function generateRecommendation() {
-      const time = parseInt(document.getElementById('mood-time').value) || 30;
-      const fatigue = parseInt(document.getElementById('mood-fatigue').value);
-      const mood = document.getElementById('mood-state').value;
-      const output = document.getElementById('recommendation-output');
-
-      if (appData.modules.length === 0) {
-        output.style.display = 'block';
-        output.innerHTML = '<strong>Remarque :</strong> Ajoutez au moins un module pour recevoir une recommandation.';
-        return;
-      }
-
-      // Choix d'un module au hasard
-      const randomMod = appData.modules[Math.floor(Math.random() * appData.modules.length)];
-      let advice = "";
-
-      if (fatigue >= 4 || mood === 'demotivated') {
-        advice = `💡 **Stratégie Basse Énergie (${time} min)** :<br>
-        Ne vous forcez pas à réviser l'impossible. Prenez le module **${randomMod.name}** et réalisez uniquement l'**Étape 1 (Écouter / noter l'audio)** ou révisez un exercice de TD léger.`;
-      } else if (fatigue === 3 || mood === 'distracted') {
-        advice = `⚡ **Stratégie Focus Réduite (${time} min)** :<br>
-        Lancez une session Pomodoro de 20-25 min sur le module **${randomMod.name}**. Concentrez-vous sur l'**Étape 3 (Faire un résumé)** d'un chapitre.`;
-      } else {
-        advice = `🚀 **Stratégie Haute Énergie (${time} min)** :<br>
-        Vous êtes en forme ! Attaquez la partie la plus difficile : l'**Étape 2 (Comprendre le reste)** ou préparez vos TP du module **${randomMod.name}**.`;
-      }
-
-      output.style.display = 'block';
-      output.innerHTML = advice;
-    }
-
-    // --- PLANNING UNIVERSITAIRE ---
-    function addPlanningItem() {
-      const title = document.getElementById('plan-title').value.trim();
-      const date = document.getElementById('plan-date').value;
-
-      if (!title || !date) return alert('Veuillez remplir le titre et la date.');
-
-      appData.planning.push({ id: Date.now(), title, date });
-      saveData();
-      renderPlanning();
-      document.getElementById('plan-title').value = '';
-    }
-
-    function deletePlanningItem(id) {
-      appData.planning = appData.planning.filter(p => p.id !== id);
-      saveData();
-      renderPlanning();
-    }
-
-    function renderPlanning() {
-      const container = document.getElementById('planning-list');
-      if (appData.planning.length === 0) {
-        container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">Aucun événement planifié.</p>';
-        return;
-      }
-
-      container.innerHTML = appData.planning.map(item => `
-        <div style="background: rgba(15,23,42,0.5); padding: 10px; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <div style="font-weight: 600;">${item.title}</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">${new Date(item.date).toLocaleString('fr-FR')}</div>
-          </div>
-          <button class="btn btn-danger btn-small" onclick="deletePlanningItem(${item.id})">✕</button>
-        </div>
-      `).join('');
-    }
-
-    // --- MINUTEUR POMODORO ---
-    let timerInterval = null;
-    let timeLeft = 25 * 60;
-    let isRunning = false;
-
-    function updatePomodoroDropdown() {
-      const select = document.getElementById('pomo-module-select');
-      select.innerHTML = appData.modules.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
-    }
-
-    function startTimer() {
-      if (isRunning) return;
-      isRunning = true;
-      document.getElementById('pomo-start-btn').innerText = 'En cours...';
-
-      timerInterval = setInterval(() => {
-        if (timeLeft > 0) {
-          timeLeft--;
-          updateTimerDisplay();
-        } else {
-          clearInterval(timerInterval);
-          isRunning = false;
-          document.getElementById('pomo-start-btn').innerText = 'Démarrer';
-          alert('Session Pomodoro terminée ! Prenez une pause bien méritée.');
-        }
-      }, 1000);
-    }
-
-    function pauseTimer() {
-      clearInterval(timerInterval);
-      isRunning = false;
-      document.getElementById('pomo-start-btn').innerText = 'Démarrer';
-    }
-
-    function resetTimer() {
-      pauseTimer();
-      const workDur = parseInt(document.getElementById('pomo-work').value) || 25;
-      timeLeft = workDur * 60;
-      updateTimerDisplay();
-    }
-
-    function updateTimerDisplay() {
-      const mins = Math.floor(timeLeft / 60);
-      const secs = timeLeft % 60;
-      document.getElementById('timer-display').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
-
-    // Initialisation globale au chargement
-    renderModules();
-    renderPlanning();
-    updateGlobalStats();
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
