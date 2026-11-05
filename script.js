@@ -10,7 +10,6 @@ function saveData() {
   updateGlobalStats();
 }
 
-// Changement d'onglet
 function switchTab(tabId) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
@@ -18,12 +17,25 @@ function switchTab(tabId) {
   event.target.classList.add('active');
 
   if (tabId === 'pomodoro') updatePomodoroDropdown();
+  if (tabId === 'config') loadSyncCredentials();
 }
 
 function toggleForm(formId) {
   const form = document.getElementById(formId);
   form.style.display = form.style.display === 'none' ? 'block' : 'none';
 }
+
+// --- GESTION DU NUANCIER PASTEL ---
+document.addEventListener('DOMContentLoaded', () => {
+  const swatches = document.querySelectorAll('#pastel-palette .swatch');
+  swatches.forEach(swatch => {
+    swatch.addEventListener('click', (e) => {
+      swatches.forEach(s => s.classList.remove('selected'));
+      swatch.classList.add('selected');
+      document.getElementById('mod-color').value = swatch.getAttribute('data-color');
+    });
+  });
+});
 
 // --- GESTION DES MODULES ---
 function createModule() {
@@ -40,6 +52,7 @@ function createModule() {
     color: color,
     tpCount: tp,
     tdCount: td,
+    collapsed: false, // Module ouvert par défaut
     chapters: []
   };
 
@@ -58,8 +71,18 @@ function deleteModule(modId) {
   }
 }
 
-// Changement d'emplacement/ordre
-function moveModule(index, direction) {
+// Toggle Ouverture / Fermeture du Module (Clic pour réduire / ré-ouvrir)
+function toggleModuleCollapse(modId) {
+  const mod = appData.modules.find(m => m.id === modId);
+  if (mod) {
+    mod.collapsed = !mod.collapsed;
+    saveData();
+    renderModules();
+  }
+}
+
+function moveModule(index, direction, event) {
+  if (event) event.stopPropagation();
   const newIndex = index + direction;
   if (newIndex < 0 || newIndex >= appData.modules.length) return;
   const temp = appData.modules[index];
@@ -69,7 +92,7 @@ function moveModule(index, direction) {
   renderModules();
 }
 
-// --- GESTION DES CHAPITRES & ÉTAPES ---
+// --- CHAPITRES & ÉTAPES ---
 function addChapter(modId) {
   const title = prompt('Titre du chapitre :');
   if (!title) return;
@@ -123,7 +146,7 @@ function renderModules() {
 
   appData.modules.forEach((mod, index) => {
     const card = document.createElement('div');
-    card.className = 'module-card';
+    card.className = `module-card ${mod.collapsed ? 'collapsed' : ''}`;
     card.style.borderLeftColor = mod.color;
 
     let chaptersHTML = mod.chapters.map(chap => `
@@ -144,25 +167,26 @@ function renderModules() {
     `).join('');
 
     card.innerHTML = `
-      <div>
-        <div class="module-header">
-          <div class="module-title" style="color: ${mod.color}">${mod.name}</div>
-          <div class="module-actions">
-            <button class="btn btn-secondary btn-small" onclick="moveModule(${index}, -1)">▲</button>
-            <button class="btn btn-secondary btn-small" onclick="moveModule(${index}, 1)">▼</button>
-            <button class="btn btn-danger btn-small" onclick="deleteModule(${mod.id})">✕</button>
-          </div>
+      <div class="module-header" onclick="toggleModuleCollapse(${mod.id})">
+        <div class="module-title-wrapper">
+          <span class="toggle-icon">▼</span>
+          <span class="module-title" style="color: ${mod.color}">${mod.name}</span>
         </div>
-        
+        <div class="module-actions" onclick="event.stopPropagation()">
+          <button class="btn btn-secondary btn-small" onclick="moveModule(${index}, -1, event)">▲</button>
+          <button class="btn btn-secondary btn-small" onclick="moveModule(${index}, 1, event)">▼</button>
+          <button class="btn btn-danger btn-small" onclick="deleteModule(${mod.id})">✕</button>
+        </div>
+      </div>
+      
+      <div class="module-body">
         <div class="module-info">
           🧪 TP : ${mod.tpCount} | 📝 TD : ${mod.tdCount} | 📚 Chapitres : ${mod.chapters.length}
         </div>
 
         <button class="btn btn-small full-width" style="margin-bottom: 10px;" onclick="addChapter(${mod.id})">+ Ajouter un chapitre</button>
         
-        <div class="chapter-container">
-          ${chaptersHTML}
-        </div>
+        <div class="chapter-container">${chaptersHTML}</div>
       </div>
     `;
 
@@ -211,11 +235,11 @@ function generateRecommendation() {
   let advice = "";
 
   if (fatigue >= 4 || mood === 'demotivated') {
-    advice = `💡 <strong>Stratégie Basse Énergie (${time} min)</strong> :<br>Ne forcez pas sur la théorie lourde. Prenez le module <strong>${randomMod.name}</strong> et réalisez l'<strong>Étape 1 (Écouter / noter l'audio)</strong> ou révisez un exercice de TD simple.`;
+    advice = `💡 <strong>Stratégie Basse Énergie (${time} min)</strong> :<br>Ne forcez pas sur la théorie lourde. Prenez le module <strong>${randomMod.name}</strong> et réalisez l'<strong>Étape 1 (Écouter / noter l'audio)</strong>[cite: 1] ou révisez un exercice de TD simple[cite: 1].`;
   } else if (fatigue === 3 || mood === 'distracted') {
-    advice = `⚡ <strong>Stratégie Focus Modéré (${time} min)</strong> :<br>Lancez une session Pomodoro de 20-25 min sur <strong>${randomMod.name}</strong>. Effectuez l'<strong>Étape 3 (Faire un résumé)</strong> d'un chapitre.`;
+    advice = `⚡ <strong>Stratégie Focus Modéré (${time} min)</strong> :<br>Lancez une session Pomodoro de 20-25 min sur <strong>${randomMod.name}</strong>[cite: 1]. Effectuez l'<strong>Étape 3 (Faire un résumé)</strong> d'un chapitre[cite: 1].`;
   } else {
-    advice = `🚀 <strong>Stratégie Haute Énergie (${time} min)</strong> :<br>Profitez de votre état ! Attaquez l'<strong>Étape 2 (Comprendre le reste)</strong> ou travaillez vos TP sur le module <strong>${randomMod.name}</strong>.`;
+    advice = `🚀 <strong>Stratégie Haute Énergie (${time} min)</strong> :<br>Profitez de votre état ! Attaquez l'<strong>Étape 2 (Comprendre le reste)</strong>[cite: 1] ou travaillez vos TP sur le module <strong>${randomMod.name}</strong>[cite: 1].`;
   }
 
   output.style.display = 'block';
@@ -259,7 +283,7 @@ function renderPlanning() {
   `).join('');
 }
 
-// --- MINUTEUR POMODORO ---
+// --- POMODORO ---
 let timerInterval = null;
 let timeLeft = 25 * 60;
 let isRunning = false;
@@ -306,7 +330,118 @@ function updateTimerDisplay() {
   document.getElementById('timer-display').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
-// Initialisation au chargement
+// --- CONFIGURATION : EXPORT & IMPORT LOCAL JSON ---
+function exportJSON() {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", `study_app_backup_${new Date().toISOString().slice(0,10)}.json`);
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+}
+
+function importJSON() {
+  const fileInput = document.getElementById('import-file');
+  if (!fileInput.files.length) return alert('Veuillez sélectionner un fichier JSON.');
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const importedData = JSON.parse(e.target.result);
+      if (importedData.modules && importedData.planning) {
+        appData = importedData;
+        saveData();
+        renderModules();
+        renderPlanning();
+        alert('Données importées avec succès !');
+      } else {
+        alert('Format de fichier invalide.');
+      }
+    } catch (err) {
+      alert('Erreur lors de la lecture du fichier JSON.');
+    }
+  };
+  reader.readAsText(fileInput.files[0]);
+}
+
+// --- CONFIGURATION : SYNCHRO GITHUB GIST ---
+function saveSyncCredentials() {
+  const token = document.getElementById('github-token').value.trim();
+  const gistId = document.getElementById('github-gist-id').value.trim();
+
+  localStorage.setItem('study_gh_token', token);
+  localStorage.setItem('study_gh_gist_id', gistId);
+  alert('Identifiants GitHub enregistrés.');
+}
+
+function loadSyncCredentials() {
+  document.getElementById('github-token').value = localStorage.getItem('study_gh_token') || '';
+  document.getElementById('github-gist-id').value = localStorage.getItem('study_gh_gist_id') || '';
+}
+
+async function pushToGist() {
+  const token = localStorage.getItem('study_gh_token');
+  const gistId = localStorage.getItem('study_gh_gist_id');
+  const statusEl = document.getElementById('sync-status');
+
+  if (!token || !gistId) return alert('Veuillez d\'abord enregistrer votre Jeton et Gist ID.');
+
+  statusEl.innerText = "Envoi des données en cours...";
+  try {
+    const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `token ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        files: {
+          "study_data.json": { content: JSON.stringify(appData, null, 2) }
+        }
+      })
+    });
+
+    if (res.ok) {
+      statusEl.innerText = "✅ Données envoyées au Cloud avec succès !";
+    } else {
+      statusEl.innerText = "❌ Erreur lors de l'envoi vers GitHub.";
+    }
+  } catch (e) {
+    statusEl.innerText = "❌ Erreur de connexion réseau.";
+  }
+}
+
+async function pullFromGist() {
+  const token = localStorage.getItem('study_gh_token');
+  const gistId = localStorage.getItem('study_gh_gist_id');
+  const statusEl = document.getElementById('sync-status');
+
+  if (!token || !gistId) return alert('Veuillez d\'abord enregistrer votre Jeton et Gist ID.');
+
+  statusEl.innerText = "Récupération des données...";
+  try {
+    const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+      headers: { 'Authorization': `token ${token}` }
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const content = data.files["study_data.json"].content;
+      appData = JSON.parse(content);
+      saveData();
+      renderModules();
+      renderPlanning();
+      statusEl.innerText = "✅ Données synchronisées depuis le Cloud !";
+    } else {
+      statusEl.innerText = "❌ Erreur lors de la récupération.";
+    }
+  } catch (e) {
+    statusEl.innerText = "❌ Erreur réseau.";
+  }
+}
+
+// Initialisation globale
 renderModules();
 renderPlanning();
 updateGlobalStats();
