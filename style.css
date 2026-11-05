@@ -101,7 +101,7 @@ nav {
   display: block;
 }
 
-/* Composants Formulaires & Cartes */
+/* Composants UI */
 .card {
   background: var(--card-bg);
   border-radius: 12px;
@@ -151,10 +151,31 @@ input:focus, select:focus {
   border-color: var(--primary);
 }
 
-.color-picker {
-  height: 42px;
+/* Nuancier Pastel Multi-choix */
+.pastel-swatches {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 5px;
+}
+
+.swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   cursor: pointer;
-  padding: 2px;
+  border: 2px solid transparent;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.swatch:hover {
+  transform: scale(1.15);
+}
+
+.swatch.selected {
+  border-color: #ffffff;
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
 }
 
 .subtitle {
@@ -211,7 +232,7 @@ input:focus, select:focus {
   margin-top: 15px;
 }
 
-/* Grille des Modules */
+/* Grille & Cartes des Modules */
 .grid-modules {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -222,23 +243,38 @@ input:focus, select:focus {
   background: var(--card-bg);
   border-radius: 12px;
   border: 1px solid var(--border);
-  padding: 20px;
-  border-left: 6px solid var(--primary);
+  padding: 18px;
+  border-left: 8px solid var(--primary);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  transition: all 0.25s ease;
 }
 
+/* En-tête de Carte Cliquable (Ouvrir / Fermer) */
 .module-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  cursor: pointer;
+  user-select: none;
+  padding: 4px 0;
+}
+
+.module-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .module-title {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 700;
+}
+
+.toggle-icon {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
 }
 
 .module-actions {
@@ -249,12 +285,27 @@ input:focus, select:focus {
 .module-info {
   font-size: 0.85rem;
   color: var(--text-muted);
+  margin-top: 6px;
   margin-bottom: 12px;
 }
 
-/* Chapitres & 3 Étapes */
+/* Animation Réduction / Expansion du Module */
+.module-body {
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  overflow: hidden;
+}
+
+.module-card.collapsed .module-body {
+  display: none;
+}
+
+.module-card.collapsed .toggle-icon {
+  transform: rotate(-90deg);
+}
+
+/* Chapitres & ÉTAPES */
 .chapter-container {
-  margin-top: 15px;
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
   gap: 10px;
