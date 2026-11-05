@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Study.app - Mon Assistant d'Études</title>
   
-  <!-- Feuilles de style & PWA -->
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#6366f1">
@@ -18,7 +17,6 @@
 <body>
 
   <div class="container">
-    <!-- En-tête avec statistiques globales -->
     <header>
       <h1>Study.app</h1>
       <div class="stats-container">
@@ -28,31 +26,42 @@
       </div>
     </header>
 
-    <!-- Navigation principale -->
     <nav>
       <button class="nav-btn active" onclick="switchTab('modules')">📚 Modules & Chapitres</button>
-      <button class="nav-btn" onclick="switchTab('planning')">📅 Planning & Recommandateur Anti-Mood</button>
-      <button class="nav-btn" onclick="switchTab('pomodoro')">⏱️ Pomodoro par Module</button>
+      <button class="nav-btn" onclick="switchTab('planning')">📅 Planning & Anti-Mood</button>
+      <button class="nav-btn" onclick="switchTab('pomodoro')">⏱️ Pomodoro</button>
+      <button class="nav-btn" onclick="switchTab('config')">⚙️ Configuration & Sync</button>
     </nav>
 
-    <!-- ONGLET 1 : MODULES & CHAPITRES -->
+    <!-- ONGLET 1 : MODULES -->
     <section id="tab-modules" class="tab-content active">
       <div class="action-bar">
         <button class="btn" onclick="toggleForm('form-add-module')">+ Créer un nouveau Module</button>
       </div>
 
-      <!-- Formulaire d'ajout de Module -->
       <div id="form-add-module" class="card" style="display: none;">
         <h3>Nouveau Module</h3>
         <div class="form-group">
           <label for="mod-title">Nom du Module</label>
-          <input type="text" id="mod-title" placeholder="ex: Anesthésie-Réanimation, Algorithmique...">
+          <input type="text" id="mod-title" placeholder="ex: Anesthésie-Réanimation...">
         </div>
-        <div class="form-row">
-          <div class="form-group flex-1">
-            <label for="mod-color">Couleur personnalisée</label>
-            <input type="color" id="mod-color" value="#6366f1" class="color-picker">
+        
+        <div class="form-group">
+          <label>Couleur du thème (Palette Pastel)</label>
+          <div class="pastel-swatches" id="pastel-palette">
+            <div class="swatch selected" style="background-color: #A7F3D0;" data-color="#A7F3D0" title="Menthe"></div>
+            <div class="swatch" style="background-color: #93C5FD;" data-color="#93C5FD" title="Bleu Ciel"></div>
+            <div class="swatch" style="background-color: #C4B5FD;" data-color="#C4B5FD" title="Lavande"></div>
+            <div class="swatch" style="background-color: #FCA5A5;" data-color="#FCA5A5" title="Rose Pêche"></div>
+            <div class="swatch" style="background-color: #FDE68A;" data-color="#FDE68A" title="Jaune Pastel"></div>
+            <div class="swatch" style="background-color: #FDBA74;" data-color="#FDBA74" title="Abricot"></div>
+            <div class="swatch" style="background-color: #F472B6;" data-color="#F472B6" title="Rose Bonbon"></div>
+            <div class="swatch" style="background-color: #86EFAC;" data-color="#86EFAC" title="Vert Pastel"></div>
           </div>
+          <input type="hidden" id="mod-color" value="#A7F3D0">
+        </div>
+
+        <div class="form-row">
           <div class="form-group flex-1">
             <label for="mod-tp">Nombre de TP</label>
             <input type="number" id="mod-tp" value="0" min="0">
@@ -63,26 +72,23 @@
           </div>
         </div>
         <div class="form-actions">
-          <button class="btn" onclick="createModule()">Enregistrer le Module</button>
+          <button class="btn" onclick="createModule()">Enregistrer</button>
           <button class="btn btn-secondary" onclick="toggleForm('form-add-module')">Annuler</button>
         </div>
       </div>
 
-      <!-- Liste dynamique des modules -->
       <div class="grid-modules" id="modules-list"></div>
     </section>
 
-    <!-- ONGLET 2 : PLANNING & RECOMMANDATEUR ANTI-MOOD -->
+    <!-- ONGLET 2 : PLANNING & ANTI-MOOD -->
     <section id="tab-planning" class="tab-content">
       <div class="planning-grid">
-        
-        <!-- Recommandateur Anti-Mood -->
         <div class="card">
           <h2>🧠 Recommandateur Anti-Mood</h2>
-          <p class="subtitle">Indiquez votre état actuel et le temps disponible pour obtenir votre tâche idéale sans subir votre humeur.</p>
+          <p class="subtitle">Sélectionnez votre état pour générer la tâche idéale.</p>
 
           <div class="form-group">
-            <label for="mood-time">Durée disponible (minutes)</label>
+            <label for="mood-time">Durée disponible (min)</label>
             <input type="number" id="mood-time" value="30" min="5" step="5">
           </div>
 
@@ -103,40 +109,36 @@
               <option value="motivated">Très Motivé(e)</option>
               <option value="neutral">Neutre</option>
               <option value="distracted">Distrait(e)</option>
-              <option value="demotivated">Démotivé(e) / Fainéant(e)</option>
+              <option value="demotivated">Démotivé(e)</option>
             </select>
           </div>
 
-          <button class="btn full-width" onclick="generateRecommendation()">Obtenir la tâche adaptée</button>
-
+          <button class="btn full-width" onclick="generateRecommendation()">Obtenir la tâche</button>
           <div class="recommendation-result" id="recommendation-output" style="display: none;"></div>
         </div>
 
-        <!-- Planning Universitaire -->
         <div class="card">
           <h2>📅 Planning Universitaire</h2>
           <div class="form-group">
-            <label for="plan-title">Intitulé (Examen, TP, Révision...)</label>
-            <input type="text" id="plan-title" placeholder="ex: Examen de TP Mod 2">
+            <label for="plan-title">Intitulé</label>
+            <input type="text" id="plan-title" placeholder="ex: Examen de TP">
           </div>
           <div class="form-group">
             <label for="plan-date">Date et Heure</label>
             <input type="datetime-local" id="plan-date">
           </div>
           <button class="btn full-width" onclick="addPlanningItem()">Ajouter au planning</button>
-
           <div class="planning-list" id="planning-list"></div>
         </div>
-
       </div>
     </section>
 
-    <!-- ONGLET 3 : POMODORO PAR MODULE -->
+    <!-- ONGLET 3 : POMODORO -->
     <section id="tab-pomodoro" class="tab-content">
       <div class="card pomodoro-container">
-        <h2>⏱️ Minuteur Pomodoro par Module</h2>
+        <h2>⏱️ Minuteur Pomodoro</h2>
         <div class="form-group">
-          <label for="pomo-module-select">Module à étudier</label>
+          <label for="pomo-module-select">Module associé</label>
           <select id="pomo-module-select"></select>
         </div>
 
@@ -157,6 +159,49 @@
           <button class="btn" id="pomo-start-btn" onclick="startTimer()">Démarrer</button>
           <button class="btn btn-secondary" onclick="pauseTimer()">Pause</button>
           <button class="btn btn-danger" onclick="resetTimer()">Réinitialiser</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ONGLET 4 : CONFIGURATION & SYNCHRO -->
+    <section id="tab-config" class="tab-content">
+      <div class="planning-grid">
+        <div class="card">
+          <h2>💾 Sauvegarde & Restauration Locale</h2>
+          <p class="subtitle">Exportez vos données sous forme de fichier pour les transférer sur un autre appareil.</p>
+          
+          <button class="btn full-width" style="margin-bottom: 15px;" onclick="exportJSON()">📥 Exporter les données (JSON)</button>
+          
+          <hr style="border-color: var(--border); margin: 15px 0;">
+          
+          <div class="form-group">
+            <label for="import-file">Restaurer un fichier de sauvegarde</label>
+            <input type="file" id="import-file" accept=".json">
+          </div>
+          <button class="btn btn-secondary full-width" onclick="importJSON()">📤 Importer le fichier JSON</button>
+        </div>
+
+        <div class="card">
+          <h2>☁️ Synchronisation Cloud (GitHub Gist)</h2>
+          <p class="subtitle">Synchronisez vos données entre vos 3 appareils en utilisant GitHub Gist.</p>
+
+          <div class="form-group">
+            <label for="github-token">Jeton d'accès GitHub (PAT)</label>
+            <input type="password" id="github-token" placeholder="ghp_xxxxxxxxxxxx">
+          </div>
+
+          <div class="form-group">
+            <label for="github-gist-id">Gist ID</label>
+            <input type="text" id="github-gist-id" placeholder="ex: a1b2c3d4e5f6...">
+          </div>
+
+          <button class="btn full-width" style="margin-bottom: 10px;" onclick="saveSyncCredentials()">💾 Enregistrer les identifiants</button>
+          
+          <div class="form-row" style="margin-top: 15px;">
+            <button class="btn flex-1" onclick="pushToGist()">📤 Envoyer au Cloud</button>
+            <button class="btn btn-secondary flex-1" onclick="pullFromGist()">📥 Récupérer du Cloud</button>
+          </div>
+          <div id="sync-status" class="subtitle" style="margin-top: 10px; font-weight: bold;"></div>
         </div>
       </div>
     </section>
